@@ -22,7 +22,7 @@ pipeline {
             steps {
                 echo 'Running Linting...'
                 // Run flake8
-                sh '. venv/bin/activate && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics'
+                sh '. venv/bin/activate && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv'
             }
         }
         stage('Pipeline Verification') {
