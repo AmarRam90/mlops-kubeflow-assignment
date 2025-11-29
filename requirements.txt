@@ -1,0 +1,29 @@
+# --- Core MLOps & Orchestration ---
+# The Kubeflow Pipelines SDK to define and compile pipelines
+kfp>=2.0.0
+
+# --- Data Versioning ---
+# DVC for versioning datasets
+dvc>=3.0.0
+
+# [IMPORTANT]: Uncomment ONE of the following lines based on your DVC storage choice in Task 1:
+# If using AWS S3 or MinIO:
+# dvc-s3
+# If using Google Drive:
+# dvc-gdrive
+# If using Azure Blob Storage:
+# dvc-azure
+
+# --- Data Processing ---
+# For handling the Boston Housing dataset (CSV)
+pandas>=1.5.0
+# For numerical operations
+numpy>=1.23.0
+
+# --- Machine Learning ---
+# For the Random Forest Classifier and metrics
+scikit-learn>=1.2.0
+
+# --- Utilities ---
+# For saving/loading the model artifact (.pkl file)
+joblib>=1.2.0

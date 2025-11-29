@@ -1,0 +1,4 @@
+[core]
+    remote = localremote
+['remote "localremote"']
+    url = D:\MyStuff\University\Current\MLOps\Assign4\MLOps-dvc-storage
