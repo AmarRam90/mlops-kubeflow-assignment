@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1764420164529
+current_stage: None
+description: ''
+last_updated_timestamp: 1764420164529
+name: Ares
+run_id: 944157b623bd4a63a446c4fa48a10e98
+run_link: ''
+source: file:///D:/MyStuff/University/Current/MLOps/Assign4/mlops-kubeflow-assignment/mlruns/205960307442823985/944157b623bd4a63a446c4fa48a10e98/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///D:/MyStuff/University/Current/MLOps/Assign4/mlops-kubeflow-assignment/mlruns/205960307442823985/944157b623bd4a63a446c4fa48a10e98/artifacts/model
+user_id: null
+version: 1

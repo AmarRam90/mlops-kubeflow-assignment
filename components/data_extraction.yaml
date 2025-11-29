@@ -1,0 +1,50 @@
+name: Data extraction func
+description: Extract California Housing dataset.
+outputs:
+- {name: dataset_output, type: Dataset}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas==1.5.0' 'scikit-learn==1.2.0' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+      -m pip install --quiet --no-warn-script-location 'pandas==1.5.0' 'scikit-learn==1.2.0'
+      --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def _make_parent_dirs_and_return_path(file_path: str):
+          import os
+          os.makedirs(os.path.dirname(file_path), exist_ok=True)
+          return file_path
+
+      def data_extraction_func(
+          dataset_output_path
+      ):
+          """Extract California Housing dataset."""
+          import pandas as pd
+          from sklearn.datasets import fetch_california_housing
+
+          print("Loading California Housing dataset...")
+          data = fetch_california_housing()
+          df = pd.DataFrame(data.data, columns=data.feature_names)
+          df['target'] = data.target
+          df.to_csv(dataset_output_path, index=False)
+          print(f"Dataset shape: {df.shape}")
+          print(f"Data saved to {dataset_output_path}")
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Data extraction func', description='Extract California Housing dataset.')
+      _parser.add_argument("--dataset-output", dest="dataset_output_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = data_extraction_func(**_parsed_args)
+    args:
+    - --dataset-output
+    - {outputPath: dataset_output}

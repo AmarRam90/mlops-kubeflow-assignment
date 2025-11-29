@@ -1,0 +1,55 @@
+name: Model evaluation func
+description: Evaluate trained model.
+inputs:
+- {name: test_data_input, type: Dataset}
+- {name: model_input, type: Model}
+outputs:
+- {name: metrics_output, type: Metrics}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas==1.5.0' 'scikit-learn==1.2.0' 'joblib==1.2.0' || PIP_DISABLE_PIP_VERSION_CHECK=1
+      python3 -m pip install --quiet --no-warn-script-location 'pandas==1.5.0' 'scikit-learn==1.2.0'
+      'joblib==1.2.0' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n   \
+      \ os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return file_path\n\
+      \ndef model_evaluation_func(\n    test_data_input_path,\n    model_input_path,\n\
+      \    metrics_output_path\n):\n    \"\"\"Evaluate trained model.\"\"\"\n    import\
+      \ pandas as pd\n    import joblib\n    from sklearn.metrics import r2_score,\
+      \ mean_squared_error\n    import json\n    import math\n\n    # Load test data\n\
+      \    test_df = pd.read_csv(test_data_input_path)\n    X_test = test_df.iloc[:,\
+      \ :-1].values\n    y_test = test_df.iloc[:, -1].values\n\n    # Load model\n\
+      \    model = joblib.load(model_input_path)\n\n    # Make predictions\n    y_pred\
+      \ = model.predict(X_test)\n\n    # Calculate metrics\n    r2 = r2_score(y_test,\
+      \ y_pred)\n    mse = mean_squared_error(y_test, y_pred)\n    rmse = math.sqrt(mse)\n\
+      \n    print(f\"Evaluation Results:\")\n    print(f\"  R\xB2 Score: {r2:.4f}\"\
+      )\n    print(f\"  MSE: {mse:.4f}\")\n    print(f\"  RMSE: {rmse:.4f}\")\n\n\
+      \    # Save metrics\n    metrics_dict = {\n        'r2_score': float(r2),\n\
+      \        'mse': float(mse),\n        'rmse': float(rmse),\n        'n_test_samples':\
+      \ len(y_test)\n    }\n\n    with open(metrics_output_path, 'w') as f:\n    \
+      \    json.dump(metrics_dict, f, indent=2)\n\n    print(f\"Metrics saved to {metrics_output_path}\"\
+      )\n\nimport argparse\n_parser = argparse.ArgumentParser(prog='Model evaluation\
+      \ func', description='Evaluate trained model.')\n_parser.add_argument(\"--test-data-input\"\
+      , dest=\"test_data_input_path\", type=str, required=True, default=argparse.SUPPRESS)\n\
+      _parser.add_argument(\"--model-input\", dest=\"model_input_path\", type=str,\
+      \ required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--metrics-output\"\
+      , dest=\"metrics_output_path\", type=_make_parent_dirs_and_return_path, required=True,\
+      \ default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n\
+      _outputs = model_evaluation_func(**_parsed_args)\n"
+    args:
+    - --test-data-input
+    - {inputPath: test_data_input}
+    - --model-input
+    - {inputPath: model_input}
+    - --metrics-output
+    - {outputPath: metrics_output}

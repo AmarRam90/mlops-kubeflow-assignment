@@ -1,0 +1,71 @@
+name: Model training func
+description: Train Random Forest model.
+inputs:
+- {name: train_data_input, type: Dataset}
+- {name: n_estimators, type: Integer, default: '100', optional: true}
+- {name: max_depth, type: Integer, default: '10', optional: true}
+- {name: random_state, type: Integer, default: '42', optional: true}
+outputs:
+- {name: model_output, type: Model}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas==1.5.0' 'scikit-learn==1.2.0' 'joblib==1.2.0' || PIP_DISABLE_PIP_VERSION_CHECK=1
+      python3 -m pip install --quiet --no-warn-script-location 'pandas==1.5.0' 'scikit-learn==1.2.0'
+      'joblib==1.2.0' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n   \
+      \ os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return file_path\n\
+      \ndef model_training_func(\n    train_data_input_path,\n    model_output_path,\n\
+      \    n_estimators = 100,\n    max_depth = 10,\n    random_state = 42\n):\n \
+      \   \"\"\"Train Random Forest model.\"\"\"\n    import pandas as pd\n    from\
+      \ sklearn.ensemble import RandomForestRegressor\n    import joblib\n\n    #\
+      \ Load training data\n    train_df = pd.read_csv(train_data_input_path)\n  \
+      \  X_train = train_df.iloc[:, :-1].values\n    y_train = train_df.iloc[:, -1].values\n\
+      \n    print(f\"Training with {len(X_train)} samples\")\n    print(f\"Parameters:\
+      \ n_estimators={n_estimators}, max_depth={max_depth}\")\n\n    # Train model\n\
+      \    model = RandomForestRegressor(\n        n_estimators=n_estimators,\n  \
+      \      max_depth=max_depth,\n        random_state=random_state,\n        n_jobs=-1\n\
+      \    )\n    model.fit(X_train, y_train)\n\n    # Calculate training score\n\
+      \    train_score = model.score(X_train, y_train)\n    print(f\"Training R\xB2\
+      \ score: {train_score:.4f}\")\n\n    # Save model\n    joblib.dump(model, model_output_path)\n\
+      \    print(f\"Model saved to {model_output_path}\")\n\nimport argparse\n_parser\
+      \ = argparse.ArgumentParser(prog='Model training func', description='Train Random\
+      \ Forest model.')\n_parser.add_argument(\"--train-data-input\", dest=\"train_data_input_path\"\
+      , type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
+      --n-estimators\", dest=\"n_estimators\", type=int, required=False, default=argparse.SUPPRESS)\n\
+      _parser.add_argument(\"--max-depth\", dest=\"max_depth\", type=int, required=False,\
+      \ default=argparse.SUPPRESS)\n_parser.add_argument(\"--random-state\", dest=\"\
+      random_state\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
+      --model-output\", dest=\"model_output_path\", type=_make_parent_dirs_and_return_path,\
+      \ required=True, default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\
+      \n_outputs = model_training_func(**_parsed_args)\n"
+    args:
+    - --train-data-input
+    - {inputPath: train_data_input}
+    - if:
+        cond: {isPresent: n_estimators}
+        then:
+        - --n-estimators
+        - {inputValue: n_estimators}
+    - if:
+        cond: {isPresent: max_depth}
+        then:
+        - --max-depth
+        - {inputValue: max_depth}
+    - if:
+        cond: {isPresent: random_state}
+        then:
+        - --random-state
+        - {inputValue: random_state}
+    - --model-output
+    - {outputPath: model_output}
